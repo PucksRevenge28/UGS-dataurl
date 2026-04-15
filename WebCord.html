@@ -1,0 +1,2763 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebCord</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #5865f2;
+      --success: #57f287;
+      --danger: #ed4245;
+      --warning: #faa61a;
+      --bg-primary: #36393f;
+      --bg-secondary: #2f3136;
+      --bg-tertiary: #202225;
+      --text-primary: #dbdee1;
+      --text-secondary: #b5bac1;
+      --text-muted: #72767d;
+    }
+
+    body.light {
+      --bg-primary: #f0f0f0;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #e8e8e8;
+      --text-primary: #2c2f33;
+      --text-secondary: #424245;
+      --text-muted: #72767d;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      gap: 0;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: var(--bg-tertiary);
+      border-right: 1px solid rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .user-profile:hover {
+      background: var(--bg-primary);
+    }
+
+    .user-avatar-display {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #7289da);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .user-avatar-display img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .presence-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      bottom: 0;
+      right: 0;
+      border: 2px solid var(--bg-secondary);
+    }
+
+    .presence-dot.online {
+      background: var(--success);
+    }
+
+    .presence-dot.away {
+      background: var(--warning);
+    }
+
+    .presence-dot.offline {
+      background: #72767d;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name-display {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-status-display {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .server-item {
+      padding: 10px 16px;
+      background: var(--bg-secondary);
+      border: 2px solid transparent;
+      border-left: 3px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 150ms ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .server-item:hover {
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+    }
+
+    .server-item.active {
+      background: var(--primary);
+      color: white;
+      border-left-color: white;
+    }
+
+    .add-server-btn {
+      padding: 10px 16px;
+      background: rgba(88, 101, 242, 0.1);
+      border: 1px dashed var(--primary);
+      color: var(--primary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 150ms ease;
+      margin-top: auto;
+    }
+
+    .add-server-btn:hover {
+      background: rgba(88, 101, 242, 0.2);
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 16px;
+      background: var(--bg-primary);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .online-counter {
+      padding: 6px 12px;
+      background: rgba(88, 101, 242, 0.1);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+    }
+
+    .online-counter:hover {
+      background: rgba(88, 101, 242, 0.2);
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-indicator.connected {
+      background: var(--success);
+      animation: none;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 8px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+      30% { opacity: 1; transform: translateY(-8px); }
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      animation: slideIn 200ms ease-out;
+      position: relative;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .message-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .message-avatar .presence-dot {
+      width: 10px;
+      height: 10px;
+      border: 1px solid var(--bg-secondary);
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-header {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      margin-bottom: 4px;
+      align-items: center;
+    }
+
+    .message-author {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .message-time {
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: help;
+      border-bottom: 1px dotted var(--text-muted);
+    }
+
+    .message-time::after {
+      content: attr(data-full);
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: var(--bg-secondary);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms;
+      z-index: 10;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .message-time:hover::after {
+      opacity: 1;
+    }
+
+    .message-text {
+      color: var(--text-primary);
+      font-size: 13px;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+
+    .formatted-text b {
+      font-weight: 700;
+    }
+
+    .formatted-text i {
+      font-style: italic;
+    }
+
+    .formatted-text code {
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .formatted-text pre {
+      background: var(--bg-secondary);
+      padding: 8px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 4px 0;
+    }
+
+    .formatted-text blockquote {
+      border-left: 3px solid var(--primary);
+      padding-left: 8px;
+      margin-left: 4px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .mention {
+      background: rgba(88, 101, 242, 0.2);
+      color: var(--primary);
+      padding: 0 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .message.own .message-author {
+      color: var(--success);
+    }
+
+    .message.system {
+      padding: 8px;
+      background: rgba(88, 101, 242, 0.1);
+      border-left: 3px solid var(--primary);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      gap: 0;
+    }
+
+    .message.system .message-avatar {
+      display: none;
+    }
+
+    .file-attachment {
+      margin-top: 8px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(88, 101, 242, 0.3);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .file-preview {
+      max-width: 200px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .file-preview img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .file-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .file-name {
+      color: var(--text-primary);
+      font-weight: 500;
+      word-break: break-all;
+      flex: 1;
+    }
+
+    .file-size {
+      color: var(--text-muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .file-download-btn {
+      padding: 6px 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 150ms ease;
+    }
+
+    .file-download-btn:hover {
+      background: #7289da;
+    }
+
+    .voice-message {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    .voice-play-btn {
+      padding: 6px 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 150ms ease;
+    }
+
+    .voice-play-btn:hover {
+      background: #7289da;
+    }
+
+    .voice-duration {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .poll-container {
+      margin-top: 8px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(88, 101, 242, 0.3);
+      border-radius: 4px;
+    }
+
+    .poll-question {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .poll-option {
+      padding: 8px;
+      margin-bottom: 6px;
+      background: rgba(88, 101, 242, 0.1);
+      border: 1px solid rgba(88, 101, 242, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 150ms ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .poll-option:hover {
+      background: rgba(88, 101, 242, 0.2);
+      border-color: var(--primary);
+    }
+
+    .poll-option.voted {
+      background: rgba(88, 101, 242, 0.3);
+      border-color: var(--primary);
+    }
+
+    .poll-bar {
+      height: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+      margin: 4px 0;
+    }
+
+    .poll-percent {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .reactions {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .reaction {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(88, 101, 242, 0.3);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 150ms ease;
+    }
+
+    .reaction:hover {
+      background: rgba(88, 101, 242, 0.2);
+      border-color: var(--primary);
+    }
+
+    .reaction-emoji {
+      font-size: 14px;
+    }
+
+    .reaction-count {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .reaction-add {
+      padding: 4px 6px;
+      background: transparent;
+      border: 1px dashed var(--text-muted);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 150ms ease;
+    }
+
+    .reaction-add:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .emoji-picker {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      padding: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .emoji-btn {
+      padding: 6px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 100ms ease;
+    }
+
+    .emoji-btn:hover {
+      background: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .emoji-autocomplete {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      min-width: 200px;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .emoji-autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 100ms ease;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .emoji-autocomplete-item:hover {
+      background: rgba(88, 101, 242, 0.2);
+    }
+
+    .gif-container {
+      margin-top: 8px;
+      max-width: 300px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .gif-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      gap: 12px;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      opacity: 0.3;
+    }
+
+    .footer {
+      padding: 12px 16px;
+      background: var(--bg-primary);
+      border-top: 1px solid rgba(0, 0, 0, 0.3);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      min-width: 300px;
+      position: relative;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.1);
+    }
+
+    .input-field::placeholder {
+      color: var(--text-muted);
+    }
+
+    .btn {
+      padding: 10px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 150ms ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: #7289da;
+    }
+
+    .btn.secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .btn.secondary:hover {
+      background: var(--bg-primary);
+    }
+
+    .btn.recording {
+      background: var(--danger);
+      animation: pulse-btn 1s infinite;
+    }
+
+    @keyframes pulse-btn {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-primary);
+      border-radius: 4px;
+      padding: 20px;
+      min-width: 360px;
+      max-width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      margin: auto;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.1);
+    }
+
+    .form-textarea {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.1);
+    }
+
+    .avatar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+    }
+
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #7289da);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 32px;
+      overflow: hidden;
+      border: 3px solid rgba(88, 101, 242, 0.3);
+    }
+
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-upload {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-upload {
+      background: rgba(88, 101, 242, 0.1);
+      border: 1px dashed var(--primary);
+      color: var(--primary);
+      padding: 10px 16px;
+    }
+
+    .btn-upload:hover {
+      background: rgba(88, 101, 242, 0.2);
+    }
+
+    #avatar-input, #file-input, #voice-input, #screen-input {
+      display: none;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .modal-buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 150ms ease;
+    }
+
+    .modal-buttons .cancel {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .modal-buttons .cancel:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-buttons .confirm {
+      background: var(--primary);
+      color: white;
+    }
+
+    .modal-buttons .confirm:hover {
+      background: #7289da;
+    }
+
+    .theme-toggle {
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 150ms ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-primary);
+    }
+
+    .online-users-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .online-user-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .online-user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 12px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .online-user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .online-user-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .online-user-status {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .gallery-item {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 150ms ease;
+    }
+
+    .gallery-item:hover {
+      transform: scale(1.05);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .gif-search {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .gif-search input {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .gif-search input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .gif-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .gif-item {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 150ms ease;
+    }
+
+    .gif-item:hover {
+      transform: scale(1.05);
+    }
+
+    .gif-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .poll-creation {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .poll-option-input {
+      display: flex;
+      gap: 8px;
+    }
+
+    .poll-option-input input {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .poll-option-input button {
+      padding: 8px 12px;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .debug-log {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 400px;
+      max-height: 350px;
+      background: var(--bg-primary);
+      border: 2px solid var(--primary);
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-primary);
+      overflow-y: auto;
+      z-index: 999;
+      cursor: move;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .debug-header {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+    }
+
+    .debug-header:active {
+      cursor: grabbing;
+    }
+
+    .debug-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .debug-close:hover {
+      color: var(--text-primary);
+    }
+
+    .debug-message {
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      background: var(--bg-secondary);
+      border-radius: 2px;
+      border-left: 2px solid transparent;
+      font-size: 10px;
+    }
+
+    .debug-message.success {
+      color: var(--success);
+      border-left-color: var(--success);
+    }
+
+    .debug-message.error {
+      color: var(--danger);
+      border-left-color: var(--danger);
+    }
+
+    .debug-message.warning {
+      color: var(--warning);
+      border-left-color: var(--warning);
+    }
+
+    .debug-message.info {
+      color: var(--text-secondary);
+      border-left-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="user-profile" id="user-profile">
+        <div class="user-avatar-display" id="user-avatar-display">
+          U
+          <div class="presence-dot online" id="user-presence-dot"></div>
+        </div>
+        <div class="user-info">
+          <div class="user-name-display" id="user-name-display">User</div>
+          <div class="user-status-display" id="user-status-display">Online</div>
+        </div>
+      </div>
+      
+      <div id="servers-list"></div>
+      <button class="add-server-btn" id="add-server-btn">+ Add Server</button>
+    </div>
+
+    <div class="main">
+      <div class="header">
+        <div class="header-left">
+          <div class="header-title" id="header-title"># general</div>
+          <div class="header-subtitle" id="header-subtitle">Ready to chat</div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div class="online-counter" id="online-counter" title="Click to see online users">👥 0 Online</div>
+          <div class="header-status">
+            <div class="status-indicator" id="status-indicator"></div>
+            <span id="status-text">Disconnected</span>
+          </div>
+          <button class="theme-toggle" id="theme-toggle">🌙</button>
+        </div>
+      </div>
+
+      <div class="messages-container" id="messages"></div>
+
+      <div class="footer">
+        <div class="input-wrapper">
+          <input type="text" class="input-field" id="message-input" placeholder="Type a message... (use @name to mention, :emoji: for emojis)" maxlength="2000" />
+          <div class="emoji-autocomplete" id="emoji-autocomplete" style="display: none;"></div>
+        </div>
+        <button class="btn secondary" id="file-btn" title="Upload file">📎</button>
+        <button class="btn secondary" id="voice-btn" title="Record voice message">🎤</button>
+        <button class="btn secondary" id="gif-btn" title="Send GIF">🖼️</button>
+        <button class="btn secondary" id="screen-btn" title="Share screen">📺</button>
+        <button class="btn secondary" id="poll-btn" title="Create poll">📊</button>
+        <button class="btn secondary" id="gallery-btn" title="View images">🖼️</button>
+        <button class="btn" id="send-btn">Send</button>
+        <input type="file" id="file-input" />
+        <input type="file" id="voice-input" accept="audio/*" />
+        <input type="file" id="screen-input" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-title">Account Settings</div>
+      
+      <div class="avatar-section">
+        <div class="avatar-preview" id="settings-avatar">U</div>
+        <div class="avatar-upload">
+          <button class="btn btn-upload" id="upload-avatar-btn">📷 Upload Avatar</button>
+          <input type="file" id="avatar-input" accept="image/*" />
+          <button class="btn btn-upload secondary" id="remove-avatar-btn">Remove Avatar</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-input" id="settings-username" placeholder="Enter username" maxlength="32" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Custom Status</label>
+        <input type="text" class="form-input" id="settings-status" placeholder="What's on your mind?" maxlength="60" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea class="form-textarea" id="settings-bio" placeholder="Tell us about yourself..." maxlength="150"></textarea>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="cancel" id="settings-cancel">Cancel</button>
+        <button class="confirm" id="settings-save">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Online Users Modal -->
+  <div class="modal" id="online-users-modal">
+    <div class="modal-content">
+      <div class="modal-title">Online Users</div>
+      <div class="online-users-list" id="online-users-list"></div>
+      <div class="modal-buttons">
+        <button class="cancel" onclick="document.getElementById('online-users-modal').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GIF Modal -->
+  <div class="modal" id="gif-modal">
+    <div class="modal-content">
+      <div class="modal-title">Search GIFs (Powered by Giphy)</div>
+      <div class="gif-search">
+        <input type="text" id="gif-search-input" placeholder="Search for GIFs..." />
+        <button class="btn" onclick="searchGifs()">Search</button>
+      </div>
+      <div class="gif-grid" id="gif-grid"></div>
+      <div class="modal-buttons">
+        <button class="cancel" onclick="document.getElementById('gif-modal').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Gallery Modal -->
+  <div class="modal" id="gallery-modal">
+    <div class="modal-content">
+      <div class="modal-title">Image Gallery</div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+      <div class="modal-buttons">
+        <button class="cancel" onclick="document.getElementById('gallery-modal').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Poll Creation Modal -->
+  <div class="modal" id="poll-modal">
+    <div class="modal-content">
+      <div class="modal-title">Create Poll</div>
+      <div class="form-group">
+        <label class="form-label">Poll Question</label>
+        <input type="text" class="form-input" id="poll-question" placeholder="Ask a question..." maxlength="100" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Options</label>
+        <div id="poll-options-container"></div>
+        <button class="btn secondary" onclick="addPollOption()" style="width: 100%; margin-top: 8px;">+ Add Option</button>
+      </div>
+      <div class="modal-buttons">
+        <button class="cancel" onclick="document.getElementById('poll-modal').classList.remove('active')">Cancel</button>
+        <button class="confirm" onclick="createPoll()">Create Poll</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server Modal -->
+  <div class="modal" id="server-modal">
+    <div class="modal-content">
+      <div class="modal-title">Create Server</div>
+      <div class="form-group">
+        <label class="form-label">Server Name</label>
+        <input type="text" class="form-input" id="server-input" placeholder="Enter server name" maxlength="32" />
+      </div>
+      <div class="modal-buttons">
+        <button class="cancel" id="server-cancel">Cancel</button>
+        <button class="confirm" id="server-confirm">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debug Log -->
+  <div class="debug-log" id="debug-log">
+    <div class="debug-header">
+      🐛 Debug Log
+      <button class="debug-close" id="debug-close">✕</button>
+    </div>
+    <div id="debug-messages"></div>
+  </div>
+
+  <script>
+    // ============================================================================
+    // CONSTANTS & CONFIG
+    // ============================================================================
+    const WS_URL = 'wss://cl.mikedev101.cc/';
+    const chatLineRegex = /^[^:]{1,64}: .+$/;
+    const TYPING_TIMEOUT = 3000;
+    const INACTIVITY_TIMEOUT = 600000;
+    const EMOJIS = ['👍', '❤️', '😂', '😍', '🔥', '🎉', '😢', '😡', '👏', '✨'];
+    const GIPHY_API_KEY = 'dc6zaTOxFJmzC'; // Public demo key
+
+    // Common profanity list (basic)
+    const PROFANITY_LIST = ['badword', 'offensive', 'rude'];
+
+    // Emoji list for autocomplete
+    const EMOJI_LIST = {
+      'smile': '😊', 'laugh': '😂', 'heart': '❤️', 'fire': '🔥',
+      'thumbsup': '👍', 'thumbsdown': '👎', 'ok': '👌', 'rocket': '🚀',
+      'star': '⭐', 'sparkles': '✨', 'sun': '☀️', 'moon': '🌙',
+      'clap': '👏', 'tada': '🎉', 'party': '🎊', 'cool': '😎'
+    };
+
+    const debugLog = document.getElementById('debug-log');
+    const debugMessages = document.getElementById('debug-messages');
+    const debugClose = document.getElementById('debug-close');
+
+    debugClose.addEventListener('click', () => {
+      debugLog.style.display = 'none';
+      localStorage.setItem('debug-hidden', 'true');
+    });
+
+    if (localStorage.getItem('debug-hidden') === 'true') {
+      debugLog.style.display = 'none';
+    }
+
+    function debug(message, type = 'info') {
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = `debug-message ${type}`;
+      div.textContent = `[${time}] ${message}`;
+      debugMessages.appendChild(div);
+      
+      while (debugMessages.children.length > 50) {
+        debugMessages.removeChild(debugMessages.firstChild);
+      }
+      
+      debugMessages.parentElement.scrollTop = debugMessages.parentElement.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+
+    debug('CloudLink Chat initialized', 'success');
+
+    // ============================================================================
+    // STATE
+    // ============================================================================
+    const state = {
+      connected: false,
+      username: localStorage.getItem('username') || 'User' + Math.random().toString(36).substr(2, 9),
+      avatar: localStorage.getItem('avatar') || null,
+      status: localStorage.getItem('user-status') || '🎮 Gaming',
+      bio: localStorage.getItem('user-bio') || '',
+      presence: 'online',
+      currentServer: localStorage.getItem('currentServer') || 'default',
+      servers: new Set(JSON.parse(localStorage.getItem('servers') || '["default"]')),
+      messages: {},
+      onlineUsers: new Map(),
+      ws: null,
+      lastSentVal: null,
+      lastSentTime: 0,
+      manuallyClosed: false,
+      typingUsers: new Set(),
+      theme: localStorage.getItem('theme') || 'dark',
+      inactivityTimer: null,
+      typingTimer: null,
+      lastTypingTime: 0,
+      isRecording: false,
+      mediaRecorder: null,
+      audioChunks: [],
+      pollOptions: []
+    };
+
+    state.servers.forEach(server => {
+      const stored = localStorage.getItem(`messages-${server}`);
+      state.messages[server] = stored ? JSON.parse(stored) : [];
+    });
+
+    debug(`User: ${state.username} (${state.presence})`, 'info');
+
+    // ============================================================================
+    // MESSAGE FORMATTING
+    // ============================================================================
+    function formatMessage(text) {
+      // Escape HTML first
+      let formatted = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
+      // Bold: **text**
+      formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+      
+      // Italic: *text*
+      formatted = formatted.replace(/\*(.+?)\*/g, '<i>$1</i>');
+      
+      // Code: `text`
+      formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Code block: ```code```
+      formatted = formatted.replace(/```([\s\S]+?)```/g, '<pre><code>$1</code></pre>');
+      
+      // Blockquote: > text
+      formatted = formatted.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+      
+      // Links: [text](url)
+      formatted = formatted.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" style="color: var(--primary); text-decoration: underline;">$1</a>');
+      
+      // Mentions: @username
+      formatted = formatted.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+      
+      return `<div class="formatted-text">${formatted}</div>`;
+    }
+
+    // ============================================================================
+    // EMOJI AUTOCOMPLETE
+    // ============================================================================
+    document.getElementById('message-input').addEventListener('input', (e) => {
+      const text = e.target.value;
+      const colonIndex = text.lastIndexOf(':');
+      
+      if (colonIndex !== -1) {
+        const afterColon = text.substring(colonIndex + 1);
+        
+        if (afterColon.length > 0 && /^[a-z0-9]*$/.test(afterColon)) {
+          const matches = Object.entries(EMOJI_LIST).filter(([name]) => 
+            name.startsWith(afterColon.toLowerCase())
+          );
+          
+          const container = document.getElementById('emoji-autocomplete');
+          
+          if (matches.length > 0) {
+            container.innerHTML = matches.map(([name, emoji]) => `
+              <div class="emoji-autocomplete-item" onclick="insertEmoji('${name}', '${emoji}')">
+                <span>${emoji}</span>
+                <span>:${name}:</span>
+              </div>
+            `).join('');
+            container.style.display = 'block';
+          } else {
+            container.style.display = 'none';
+          }
+        } else {
+          document.getElementById('emoji-autocomplete').style.display = 'none';
+        }
+      } else {
+        document.getElementById('emoji-autocomplete').style.display = 'none';
+      }
+
+      // Typing indicator
+      const now = Date.now();
+      if (now - state.lastTypingTime > 1000 && state.connected) {
+        state.lastTypingTime = now;
+        const packet = {
+          cmd: 'gmsg',
+          val: `__TYPING__:${state.username}`
+        };
+        if (state.ws) {
+          state.ws.send(JSON.stringify(packet));
+        }
+      }
+
+      clearTimeout(state.typingTimer);
+      state.typingTimer = setTimeout(() => {
+        state.typingUsers.delete(state.username);
+        updateTypingIndicators();
+      }, TYPING_TIMEOUT);
+    });
+
+    function insertEmoji(name, emoji) {
+      const input = document.getElementById('message-input');
+      const text = input.value;
+      const colonIndex = text.lastIndexOf(':');
+      const newText = text.substring(0, colonIndex) + emoji + ' ';
+      input.value = newText;
+      input.focus();
+      document.getElementById('emoji-autocomplete').style.display = 'none';
+    }
+
+    // ============================================================================
+    // PROFANITY FILTER
+    // ============================================================================
+    function filterProfanity(text) {
+      let filtered = text;
+      PROFANITY_LIST.forEach(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'gi');
+        filtered = filtered.replace(regex, '*'.repeat(word.length));
+      });
+      return filtered;
+    }
+
+    // ============================================================================
+    // VOICE MESSAGE RECORDING
+    // ============================================================================
+    document.getElementById('voice-btn').addEventListener('click', async () => {
+      if (!state.isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          state.mediaRecorder = new MediaRecorder(stream);
+          state.audioChunks = [];
+          
+          state.mediaRecorder.addEventListener('dataavailable', (event) => {
+            state.audioChunks.push(event.data);
+          });
+          
+          state.mediaRecorder.addEventListener('stop', () => {
+            const audioBlob = new Blob(state.audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const base64 = e.target.result.split(',')[1];
+              const duration = Math.round(state.audioChunks.length / 10); // Approximate duration
+              sendVoiceMessage(base64, duration);
+            };
+            reader.readAsDataURL(audioBlob);
+            
+            stream.getTracks().forEach(track => track.stop());
+            state.isRecording = false;
+            document.getElementById('voice-btn').classList.remove('recording');
+            document.getElementById('voice-btn').textContent = '🎤';
+          });
+          
+          state.mediaRecorder.start();
+          state.isRecording = true;
+          document.getElementById('voice-btn').classList.add('recording');
+          document.getElementById('voice-btn').textContent = '⏹️ Stop';
+          debug('Voice recording started', 'success');
+        } catch (e) {
+          debug(`Microphone error: ${e.message}`, 'error');
+        }
+      } else {
+        state.mediaRecorder.stop();
+      }
+    });
+
+    function sendVoiceMessage(base64, duration) {
+      if (!state.connected) {
+        debug('Cannot send - not connected', 'error');
+        return;
+      }
+
+      const voiceContent = `__VOICE__:${base64}__SEP__${duration}`;
+      const fullMessage = `${state.username}: ${voiceContent}`;
+      state.lastSentVal = fullMessage;
+      state.lastSentTime = Date.now();
+
+      const packet = {
+        cmd: 'gmsg',
+        val: fullMessage
+      };
+
+      state.ws.send(JSON.stringify(packet));
+      debug(`Voice message sent (${duration}s)`, 'success');
+
+      addMessage({
+        author: state.username,
+        content: `🎙️ Voice Message`,
+        voice: {
+          data: base64,
+          duration: duration
+        },
+        timestamp: new Date().toISOString(),
+        own: true
+      }, state.currentServer);
+    }
+
+    // ============================================================================
+    // GIF SEARCH (GIPHY)
+    // ============================================================================
+    document.getElementById('gif-btn').addEventListener('click', () => {
+      document.getElementById('gif-modal').classList.add('active');
+      searchGifs('trending');
+    });
+
+    async function searchGifs(query = 'trending') {
+      try {
+        const endpoint = query === 'trending' 
+          ? `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20`
+          : `https://api.giphy.com/v1/gifs/search?q=${query}&api_key=${GIPHY_API_KEY}&limit=20`;
+        
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        
+        const grid = document.getElementById('gif-grid');
+        grid.innerHTML = data.data.map(gif => `
+          <div class="gif-item" onclick="sendGif('${gif.images.fixed_height.url}')">
+            <img src="${gif.images.fixed_height.url}" alt="GIF" />
+          </div>
+        `).join('');
+        
+        debug(`Found ${data.data.length} GIFs`, 'success');
+      } catch (e) {
+        debug(`GIF search error: ${e.message}`, 'error');
+      }
+    }
+
+    function sendGif(gifUrl) {
+      if (!state.connected) {
+        debug('Cannot send - not connected', 'error');
+        return;
+      }
+
+      const gifContent = `__GIF__:${gifUrl}`;
+      const fullMessage = `${state.username}: ${gifContent}`;
+      state.lastSentVal = fullMessage;
+      state.lastSentTime = Date.now();
+
+      const packet = {
+        cmd: 'gmsg',
+        val: fullMessage
+      };
+
+      state.ws.send(JSON.stringify(packet));
+      debug('GIF sent', 'success');
+
+      addMessage({
+        author: state.username,
+        content: '📽️ GIF',
+        gif: gifUrl,
+        timestamp: new Date().toISOString(),
+        own: true
+      }, state.currentServer);
+
+      document.getElementById('gif-modal').classList.remove('active');
+    }
+
+    window.searchGifs = searchGifs;
+    window.sendGif = sendGif;
+
+    // ============================================================================
+    // IMAGE GALLERY
+    // ============================================================================
+    document.getElementById('gallery-btn').addEventListener('click', () => {
+      document.getElementById('gallery-modal').classList.add('active');
+      renderImageGallery();
+    });
+
+    function renderImageGallery() {
+      const messages = state.messages[state.currentServer] || [];
+      const images = messages.filter(m => m.file && m.file.type.startsWith('image/')).reverse();
+      
+      const grid = document.getElementById('gallery-grid');
+      if (images.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No images in this server</p>';
+        return;
+      }
+
+      grid.innerHTML = images.map(msg => `
+        <div class="gallery-item" onclick="previewGalleryImage('${msg.file.data}', '${msg.file.type}')">
+          <img src="data:${msg.file.type};base64,${msg.file.data}" alt="Image" />
+        </div>
+      `).join('');
+    }
+
+    function previewGalleryImage(data, type) {
+      const link = document.createElement('a');
+      link.href = `data:${type};base64,${data}`;
+      link.download = 'image';
+      link.click();
+    }
+
+    window.previewGalleryImage = previewGalleryImage;
+
+    // ============================================================================
+    // POLL CREATION
+    // ============================================================================
+    document.getElementById('poll-btn').addEventListener('click', () => {
+      state.pollOptions = ['Option 1', 'Option 2'];
+      renderPollOptions();
+      document.getElementById('poll-modal').classList.add('active');
+    });
+
+    function addPollOption() {
+      state.pollOptions.push(`Option ${state.pollOptions.length + 1}`);
+      renderPollOptions();
+    }
+
+    function renderPollOptions() {
+      const container = document.getElementById('poll-options-container');
+      container.innerHTML = state.pollOptions.map((option, idx) => `
+        <div class="poll-option-input">
+          <input type="text" value="${option}" onchange="state.pollOptions[${idx}] = this.value" placeholder="Option ${idx + 1}" />
+          <button onclick="state.pollOptions.splice(${idx}, 1); renderPollOptions()">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function createPoll() {
+      const question = document.getElementById('poll-question').value.trim();
+      if (!question || state.pollOptions.length < 2) {
+        debug('Poll needs a question and at least 2 options', 'warning');
+        return;
+      }
+
+      if (!state.connected) {
+        debug('Cannot send - not connected', 'error');
+        return;
+      }
+
+      const pollContent = `__POLL__:${question}__SEP__${state.pollOptions.join('__OPT__')}`;
+      const fullMessage = `${state.username}: ${pollContent}`;
+
+      const packet = {
+        cmd: 'gmsg',
+        val: fullMessage
+      };
+
+      state.ws.send(JSON.stringify(packet));
+      debug('Poll created', 'success');
+
+      addMessage({
+        author: state.username,
+        content: `📊 Poll: ${question}`,
+        poll: {
+          question,
+          options: state.pollOptions.map(o => ({ text: o, votes: [] }))
+        },
+        timestamp: new Date().toISOString(),
+        own: true
+      }, state.currentServer);
+
+      document.getElementById('poll-modal').classList.remove('active');
+      document.getElementById('poll-question').value = '';
+    }
+
+    window.addPollOption = addPollOption;
+    window.renderPollOptions = renderPollOptions;
+    window.createPoll = createPoll;
+
+    // ============================================================================
+    // SCREEN SHARE
+    // ============================================================================
+    document.getElementById('screen-btn').addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        debug('Screen sharing started', 'success');
+        addMessage({
+          author: state.username,
+          content: '📺 Sharing screen...',
+          timestamp: new Date().toISOString(),
+          system: true
+        }, state.currentServer);
+
+        stream.getTracks().forEach(track => {
+          track.onended = () => {
+            debug('Screen sharing ended', 'info');
+          };
+        });
+      } catch (e) {
+        debug(`Screen share error: ${e.message}`, 'warning');
+      }
+    });
+
+    // ============================================================================
+    // THEME
+    // ============================================================================
+    function initTheme() {
+      if (state.theme === 'light') {
+        document.body.classList.add('light');
+        document.getElementById('theme-toggle').textContent = '☀️';
+      } else {
+        document.body.classList.remove('light');
+        document.getElementById('theme-toggle').textContent = '🌙';
+      }
+    }
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', state.theme);
+      initTheme();
+      debug(`Theme switched to: ${state.theme}`, 'info');
+    });
+
+    // ============================================================================
+    // PRESENCE & INACTIVITY
+    // ============================================================================
+    function updatePresence(status) {
+      state.presence = status;
+      const presenceDot = document.getElementById('user-presence-dot');
+      presenceDot.className = `presence-dot ${status}`;
+      
+      const presenceText = {
+        online: '🟢 Online',
+        away: '🟡 Away',
+        offline: '⚪ Offline'
+      };
+      
+      document.getElementById('user-status-display').textContent = presenceText[status] || '🎮 ' + state.status;
+      broadcastPresenceUpdate();
+    }
+
+    function startInactivityTimer() {
+      clearTimeout(state.inactivityTimer);
+      state.inactivityTimer = setTimeout(() => {
+        if (state.presence === 'online') {
+          updatePresence('away');
+        }
+      }, INACTIVITY_TIMEOUT);
+    }
+
+    document.addEventListener('mousemove', () => {
+      if (state.presence === 'away') {
+        updatePresence('online');
+      }
+      startInactivityTimer();
+    });
+
+    document.addEventListener('keydown', () => {
+      if (state.presence === 'away') {
+        updatePresence('online');
+      }
+      startInactivityTimer();
+    });
+
+    // ============================================================================
+    // TYPING INDICATOR
+    // ============================================================================
+    function updateTypingIndicators() {
+      const container = document.getElementById('messages');
+      const existingTyping = container.querySelector('.typing-indicator');
+      
+      if (state.typingUsers.size === 0) {
+        if (existingTyping) existingTyping.remove();
+        return;
+      }
+
+      const typingList = Array.from(state.typingUsers)
+        .filter(u => u !== state.username)
+        .join(', ');
+
+      if (typingList && state.messages[state.currentServer].length > 0) {
+        if (existingTyping) {
+          existingTyping.innerHTML = `${typingList} <span>is typing</span>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>`;
+        } else {
+          const typing = document.createElement('div');
+          typing.className = 'typing-indicator';
+          typing.innerHTML = `${typingList} <span>is typing</span>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>`;
+          container.appendChild(typing);
+          container.scrollTop = container.scrollHeight;
+        }
+      }
+    }
+
+    // ============================================================================
+    // PROFILE BROADCAST
+    // ============================================================================
+    function broadcastPresenceUpdate() {
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+      
+      const packet = {
+        cmd: 'gmsg',
+        val: `__PRESENCE__:${state.username}:${state.presence}:${state.status}:${state.bio}`
+      };
+      state.ws.send(JSON.stringify(packet));
+    }
+
+    function broadcastProfileUpdate() {
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+      
+      const packet = {
+        cmd: 'gmsg',
+        val: `__PROFILE_UPDATE__:${state.username}:${state.avatar || 'null'}:${state.status}:${state.bio}`
+      };
+      state.ws.send(JSON.stringify(packet));
+    }
+
+    // ============================================================================
+    // WEBSOCKET CONNECTION
+    // ============================================================================
+    function connect() {
+      if (state.ws && (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING)) {
+        debug('Already connecting or connected', 'warning');
+        return;
+      }
+
+      state.manuallyClosed = false;
+      debug('Connecting to CloudLink...', 'info');
+      
+      try {
+        state.ws = new WebSocket(WS_URL);
+
+        state.ws.onopen = () => {
+          debug('✓ Connected to server', 'success');
+          state.connected = true;
+          updateStatus();
+          updatePresence('online');
+          
+          const packet = JSON.stringify({
+            cmd: 'setid',
+            val: state.username
+          });
+          state.ws.send(packet);
+          debug(`Username registered: ${state.username}`, 'success');
+          
+          broadcastProfileUpdate();
+        };
+
+        state.ws.onmessage = (event) => {
+          handleWebSocketMessage(event.data);
+        };
+
+        state.ws.onclose = () => {
+          debug('Disconnected from server', 'warning');
+          state.connected = false;
+          state.ws = null;
+          updateStatus();
+          updatePresence('offline');
+          
+          if (!state.manuallyClosed) {
+            debug('Auto-reconnecting in 3s...', 'warning');
+            setTimeout(() => connect(), 3000);
+          }
+        };
+
+        state.ws.onerror = (error) => {
+          debug(`WebSocket error: ${error}`, 'error');
+        };
+      } catch (e) {
+        debug(`Connection error: ${e.message}`, 'error');
+      }
+    }
+
+    function handleWebSocketMessage(data) {
+      try {
+        const now = Date.now();
+
+        try {
+          const parsed = JSON.parse(data);
+
+          if (parsed && parsed.cmd === 'ulist') {
+            if (parsed.mode === 'add' && parsed.val && parsed.val.username) {
+              state.onlineUsers.set(parsed.val.username, { presence: 'online', status: '🎮 Gaming', bio: '' });
+              updateOnlineCounter();
+              addMessage({
+                author: 'System',
+                content: `✅ ${parsed.val.username} joined`,
+                timestamp: new Date().toISOString(),
+                system: true
+              }, state.currentServer);
+            } else if (parsed.mode === 'remove' && parsed.val && parsed.val.username) {
+              state.onlineUsers.delete(parsed.val.username);
+              state.typingUsers.delete(parsed.val.username);
+              updateOnlineCounter();
+              updateTypingIndicators();
+              addMessage({
+                author: 'System',
+                content: `❌ ${parsed.val.username} left`,
+                timestamp: new Date().toISOString(),
+                system: true
+              }, state.currentServer);
+            }
+            return;
+          }
+
+          if (parsed && typeof parsed.val === 'string') {
+            const text = parsed.val.trim();
+            
+            if (text.startsWith('__TYPING__:')) {
+              const author = text.split('__TYPING__:')[1];
+              state.typingUsers.add(author);
+              updateTypingIndicators();
+              return;
+            }
+            
+            if (text.startsWith('__PRESENCE__:')) {
+              const parts = text.split('__PRESENCE__:')[1].split(':');
+              const [author, presence, status, bio] = parts;
+              state.onlineUsers.set(author, { presence, status, bio: bio || '' });
+              updateOnlineCounter();
+              renderMessages();
+              return;
+            }
+            
+            if (text.startsWith('__PROFILE_UPDATE__:')) {
+              return;
+            }
+            
+            if (text === state.lastSentVal && (now - state.lastSentTime) < 5000) {
+              state.lastSentVal = null;
+              state.lastSentTime = 0;
+              return;
+            }
+
+            if (chatLineRegex.test(text)) {
+              const match = text.match(/^(.+?):\s*(.+)$/);
+              if (match) {
+                const [, author, content] = match;
+                
+                state.typingUsers.delete(author);
+                updateTypingIndicators();
+
+                if (content.startsWith('__FILE__:')) {
+                  const fileParts = content.split('__FILE__:')[1].split('__SEP__');
+                  addMessage({
+                    author,
+                    content: `📎 File: ${fileParts[0]}`,
+                    file: {
+                      name: fileParts[0],
+                      type: fileParts[1],
+                      size: fileParts[2],
+                      data: fileParts[3]
+                    },
+                    timestamp: new Date().toISOString(),
+                    own: author === state.username
+                  }, state.currentServer);
+                } else if (content.startsWith('__VOICE__:')) {
+                  const voiceParts = content.split('__VOICE__:')[1].split('__SEP__');
+                  addMessage({
+                    author,
+                    content: '🎙️ Voice Message',
+                    voice: {
+                      data: voiceParts[0],
+                      duration: voiceParts[1]
+                    },
+                    timestamp: new Date().toISOString(),
+                    own: author === state.username
+                  }, state.currentServer);
+                } else if (content.startsWith('__GIF__:')) {
+                  const gifUrl = content.split('__GIF__:')[1];
+                  addMessage({
+                    author,
+                    content: '📽️ GIF',
+                    gif: gifUrl,
+                    timestamp: new Date().toISOString(),
+                    own: author === state.username
+                  }, state.currentServer);
+                } else if (content.startsWith('__POLL__:')) {
+                  const pollParts = content.split('__POLL__:')[1].split('__SEP__');
+                  const question = pollParts[0];
+                  const options = pollParts[1].split('__OPT__').map(o => ({ text: o, votes: [] }));
+                  addMessage({
+                    author,
+                    content: `📊 Poll: ${question}`,
+                    poll: { question, options },
+                    timestamp: new Date().toISOString(),
+                    own: author === state.username
+                  }, state.currentServer);
+                } else {
+                  const filteredContent = filterProfanity(content);
+                  addMessage({
+                    author,
+                    content: filteredContent,
+                    timestamp: new Date().toISOString(),
+                    own: author === state.username
+                  }, state.currentServer);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Not JSON
+        }
+      } catch (e) {
+        debug(`Error handling message: ${e.message}`, 'error');
+      }
+    }
+
+    function sendMessage(text) {
+      if (!state.connected || !text.trim()) {
+        if (!state.connected) {
+          debug('Cannot send - not connected', 'error');
+        }
+        return;
+      }
+
+      // Filter profanity
+      const filteredText = filterProfanity(text);
+
+      const fullMessage = `${state.username}: ${filteredText}`;
+      state.lastSentVal = fullMessage;
+      state.lastSentTime = Date.now();
+
+      const packet = {
+        cmd: 'gmsg',
+        val: fullMessage
+      };
+
+      if (state.ws) {
+        state.ws.send(JSON.stringify(packet));
+      }
+
+      const formattedContent = formatMessage(filteredText);
+
+      addMessage({
+        author: state.username,
+        content: formattedContent,
+        avatar: state.avatar,
+        timestamp: new Date().toISOString(),
+        own: true,
+        reactions: []
+      }, state.currentServer);
+    }
+
+    function sendFile(file, data) {
+      if (!state.connected) {
+        debug('Cannot send - not connected', 'error');
+        return;
+      }
+
+      const fileContent = `__FILE__:${file.name}__SEP__${file.type}__SEP__${(file.size / 1024).toFixed(2)} KB__SEP__${data}`;
+      const fullMessage = `${state.username}: ${fileContent}`;
+      state.lastSentVal = fullMessage;
+      state.lastSentTime = Date.now();
+
+      const packet = {
+        cmd: 'gmsg',
+        val: fullMessage
+      };
+
+      state.ws.send(JSON.stringify(packet));
+      debug(`📤 File sent: ${file.name}`, 'success');
+
+      addMessage({
+        author: state.username,
+        content: `📎 File: ${file.name}`,
+        file: {
+          name: file.name,
+          type: file.type,
+          size: (file.size / 1024).toFixed(2) + ' KB',
+          data: data
+        },
+        avatar: state.avatar,
+        timestamp: new Date().toISOString(),
+        own: true
+      }, state.currentServer);
+    }
+
+    // ============================================================================
+    // UI FUNCTIONS
+    // ============================================================================
+    function updateOnlineCounter() {
+      const count = state.onlineUsers.size;
+      document.getElementById('online-counter').textContent = `👥 ${count} Online`;
+    }
+
+    function addMessage(msg, server) {
+      if (!state.messages[server]) {
+        state.messages[server] = [];
+      }
+
+      state.messages[server].push(msg);
+      localStorage.setItem(`messages-${server}`, JSON.stringify(state.messages[server]));
+
+      if (server === state.currentServer) {
+        renderMessages();
+      }
+    }
+
+    function renderServers() {
+      const container = document.getElementById('servers-list');
+      container.innerHTML = Array.from(state.servers)
+        .map(server => `
+          <div class="server-item ${server === state.currentServer ? 'active' : ''}" data-server="${server}">
+            # ${server}
+          </div>
+        `)
+        .join('');
+
+      container.querySelectorAll('.server-item').forEach(el => {
+        el.addEventListener('click', () => {
+          state.currentServer = el.dataset.server;
+          localStorage.setItem('currentServer', state.currentServer);
+          renderServers();
+          renderMessages();
+          updateHeaderTitle();
+          debug(`Switched to: ${state.currentServer}`, 'info');
+        });
+      });
+    }
+
+    function getRelativeTime(timestamp) {
+      const now = new Date();
+      const msgTime = new Date(timestamp);
+      const diffMs = now - msgTime;
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSecs < 60) return 'just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return msgTime.toLocaleDateString();
+    }
+
+    function votePoll(msgIdx, optionIdx) {
+      const msg = state.messages[state.currentServer][msgIdx];
+      if (!msg || !msg.poll) return;
+
+      const option = msg.poll.options[optionIdx];
+      const hasVoted = option.votes.includes(state.username);
+
+      if (hasVoted) {
+        option.votes = option.votes.filter(v => v !== state.username);
+      } else {
+        option.votes.push(state.username);
+      }
+
+      localStorage.setItem(`messages-${state.currentServer}`, JSON.stringify(state.messages[state.currentServer]));
+      renderMessages();
+    }
+
+    window.votePoll = votePoll;
+
+    function renderMessages() {
+      const container = document.getElementById('messages');
+      const messages = state.messages[state.currentServer] || [];
+
+      if (messages.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <div>No messages yet</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = messages
+        .map((msg, idx) => {
+          if (msg.system) {
+            return `
+              <div class="message system">
+                <div class="message-content">
+                  <div class="message-text">${msg.content}</div>
+                </div>
+              </div>
+            `;
+          }
+
+          const fullTime = new Date(msg.timestamp).toLocaleString();
+          const relativeTime = getRelativeTime(msg.timestamp);
+
+          let avatarHTML = msg.author.charAt(0).toUpperCase();
+          if (msg.avatar) {
+            avatarHTML = `<img src="${msg.avatar}" />`;
+          }
+
+          const userInfo = state.onlineUsers.get(msg.author);
+          let presenceDot = '';
+          if (userInfo) {
+            presenceDot = `<div class="presence-dot ${userInfo.presence}"></div>`;
+          }
+
+          let fileHTML = '';
+          if (msg.file) {
+            const isImage = msg.file.type.startsWith('image/');
+            fileHTML = `
+              <div class="file-attachment">
+                ${isImage ? `<div class="file-preview" onclick="downloadFile('${msg.file.name}', '${msg.file.type}', '${msg.file.data}')"><img src="data:${msg.file.type};base64,${msg.file.data}" /></div>` : ''}
+                <div class="file-info">
+                  <div>
+                    <div class="file-name">📦 ${msg.file.name}</div>
+                    <div class="file-size">${msg.file.size}</div>
+                  </div>
+                  <button class="file-download-btn" onclick="downloadFile('${msg.file.name}', '${msg.file.type}', '${msg.file.data}')">Download</button>
+                </div>
+              </div>
+            `;
+          }
+
+          let voiceHTML = '';
+          if (msg.voice) {
+            voiceHTML = `
+              <div class="voice-message">
+                <button class="voice-play-btn" onclick="playVoiceMessage('${msg.voice.data}')">▶️</button>
+                <span class="voice-duration">${msg.voice.duration}s</span>
+              </div>
+            `;
+          }
+
+          let gifHTML = '';
+          if (msg.gif) {
+            gifHTML = `<div class="gif-container"><img src="${msg.gif}" alt="GIF" /></div>`;
+          }
+
+          let pollHTML = '';
+          if (msg.poll) {
+            const totalVotes = msg.poll.options.reduce((sum, o) => sum + o.votes.length, 0);
+            pollHTML = `
+              <div class="poll-container">
+                <div class="poll-question">${msg.poll.question}</div>
+                ${msg.poll.options.map((option, optIdx) => {
+                  const percentage = totalVotes > 0 ? Math.round((option.votes.length / totalVotes) * 100) : 0;
+                  const hasVoted = option.votes.includes(state.username);
+                  return `
+                    <div class="poll-option ${hasVoted ? 'voted' : ''}" onclick="votePoll(${idx}, ${optIdx})">
+                      <span>${option.text}</span>
+                      <span class="poll-percent">${percentage}% (${option.votes.length})</span>
+                    </div>
+                    <div class="poll-bar" style="width: ${percentage}%"></div>
+                  `;
+                }).join('')}
+              </div>
+            `;
+          }
+
+          let reactionsHTML = '';
+          if (msg.reactions && msg.reactions.length > 0) {
+            const reactionMap = {};
+            msg.reactions.forEach(r => {
+              reactionMap[r.emoji] = (reactionMap[r.emoji] || 0) + 1;
+            });
+            reactionsHTML = `
+              <div class="reactions">
+                ${Object.entries(reactionMap).map(([emoji, count]) => `
+                  <div class="reaction" onclick="addReaction(${idx}, '${emoji}')" title="You and others">
+                    <span class="reaction-emoji">${emoji}</span>
+                    <span class="reaction-count">${count}</span>
+                  </div>
+                `).join('')}
+                <div class="reaction-add" onclick="showEmojiPicker(${idx})">➕</div>
+              </div>
+            `;
+          } else {
+            reactionsHTML = `
+              <div class="reactions">
+                <div class="reaction-add" onclick="showEmojiPicker(${idx})">➕</div>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="message ${msg.own ? 'own' : ''}">
+              <div class="message-avatar">
+                ${avatarHTML}
+                ${presenceDot}
+              </div>
+              <div class="message-content">
+                <div class="message-header">
+                  <span class="message-author">${msg.author}</span>
+                  <span class="message-time" data-full="${fullTime}">${relativeTime}</span>
+                </div>
+                <div class="message-text">${msg.content}</div>
+                ${fileHTML}
+                ${voiceHTML}
+                ${gifHTML}
+                ${pollHTML}
+                ${reactionsHTML}
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function updateHeaderTitle() {
+      document.getElementById('header-title').textContent = `# ${state.currentServer}`;
+      document.getElementById('message-input').placeholder = `Message #${state.currentServer}... (use @name to mention, :emoji: for emojis)`;
+    }
+
+    function updateStatus() {
+      const indicator = document.getElementById('status-indicator');
+      const text = document.getElementById('status-text');
+      const subtitle = document.getElementById('header-subtitle');
+      
+      if (state.connected) {
+        indicator.className = 'status-indicator connected';
+        text.textContent = 'Connected';
+        subtitle.textContent = `Connected as ${state.username}`;
+      } else {
+        indicator.className = 'status-indicator';
+        text.textContent = 'Disconnected';
+        subtitle.textContent = 'Connecting...';
+      }
+    }
+
+    function updateUserProfile() {
+      const avatarEl = document.getElementById('user-avatar-display');
+      const nameEl = document.getElementById('user-name-display');
+      
+      if (state.avatar) {
+        avatarEl.innerHTML = `<img src="${state.avatar}" /><div class="presence-dot ${state.presence}" id="user-presence-dot"></div>`;
+      } else {
+        avatarEl.innerHTML = `${state.username.charAt(0).toUpperCase()}<div class="presence-dot ${state.presence}" id="user-presence-dot"></div>`;
+      }
+      
+      nameEl.textContent = state.username;
+      
+      const settingsAvatar = document.getElementById('settings-avatar');
+      if (state.avatar) {
+        settingsAvatar.innerHTML = `<img src="${state.avatar}" />`;
+      } else {
+        settingsAvatar.textContent = state.username.charAt(0).toUpperCase();
+      }
+      
+      document.getElementById('settings-username').value = state.username;
+      document.getElementById('settings-status').value = state.status;
+      document.getElementById('settings-bio').value = state.bio;
+    }
+
+    function downloadFile(name, type, data) {
+      const link = document.createElement('a');
+      link.href = `data:${type};base64,${data}`;
+      link.download = name;
+      link.click();
+      debug(`Downloaded: ${name}`, 'success');
+    }
+
+    function playVoiceMessage(data) {
+      const audio = new Audio(`data:audio/webm;base64,${data}`);
+      audio.play();
+    }
+
+    function showEmojiPicker(msgIdx) {
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.background = 'var(--bg-primary)';
+      container.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+      container.style.borderRadius = '8px';
+      container.style.padding = '8px';
+      container.style.zIndex = '2000';
+      container.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+      container.innerHTML = `
+        <div class="emoji-picker">
+          ${EMOJIS.map(emoji => `
+            <button class="emoji-btn" onclick="addReaction(${msgIdx}, '${emoji}'); this.closest('[style*=position]').remove();">${emoji}</button>
+          `).join('')}
+        </div>
+      `;
+      document.body.appendChild(container);
+      container.style.top = '50px';
+      container.style.left = '50px';
+    }
+
+    function addReaction(msgIdx, emoji) {
+      const msg = state.messages[state.currentServer][msgIdx];
+      if (!msg) return;
+      
+      if (!msg.reactions) msg.reactions = [];
+      
+      const hasReacted = msg.reactions.find(r => r.emoji === emoji && r.author === state.username);
+      if (hasReacted) {
+        msg.reactions = msg.reactions.filter(r => !(r.emoji === emoji && r.author === state.username));
+      } else {
+        msg.reactions.push({ emoji, author: state.username });
+      }
+      
+      localStorage.setItem(`messages-${state.currentServer}`, JSON.stringify(state.messages[state.currentServer]));
+      renderMessages();
+    }
+
+    window.showEmojiPicker = showEmojiPicker;
+    window.addReaction = addReaction;
+    window.downloadFile = downloadFile;
+    window.playVoiceMessage = playVoiceMessage;
+
+    // ============================================================================
+    // EVENT LISTENERS
+    // ============================================================================
+    document.getElementById('user-profile').addEventListener('click', () => {
+      document.getElementById('settings-modal').classList.add('active');
+      updateUserProfile();
+    });
+
+    document.getElementById('upload-avatar-btn').addEventListener('click', () => {
+      document.getElementById('avatar-input').click();
+    });
+
+    document.getElementById('avatar-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        state.avatar = event.target.result;
+        localStorage.setItem('avatar', state.avatar);
+        updateUserProfile();
+        renderMessages();
+        broadcastProfileUpdate();
+        debug('Avatar updated and broadcasted', 'success');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('remove-avatar-btn').addEventListener('click', () => {
+      state.avatar = null;
+      localStorage.setItem('avatar', '');
+      updateUserProfile();
+      renderMessages();
+      broadcastProfileUpdate();
+      debug('Avatar removed and broadcasted', 'info');
+    });
+
+    document.getElementById('settings-save').addEventListener('click', () => {
+      const username = document.getElementById('settings-username').value.trim();
+      const status = document.getElementById('settings-status').value.trim();
+      const bio = document.getElementById('settings-bio').value.trim();
+
+      if (!username) {
+        debug('Username cannot be empty', 'warning');
+        return;
+      }
+
+      const oldUsername = state.username;
+      state.username = username;
+      state.status = status || '🎮 Gaming';
+      state.bio = bio;
+
+      localStorage.setItem('username', state.username);
+      localStorage.setItem('user-status', state.status);
+      localStorage.setItem('user-bio', state.bio);
+      
+      if (state.connected) {
+        const packet = JSON.stringify({
+          cmd: 'setid',
+          val: state.username
+        });
+        state.ws.send(packet);
+      }
+      
+      updateUserProfile();
+      updateStatus();
+      renderMessages();
+      broadcastProfileUpdate();
+      document.getElementById('settings-modal').classList.remove('active');
+      debug(`Profile updated: ${oldUsername} → ${state.username}`, 'success');
+    });
+
+    document.getElementById('settings-cancel').addEventListener('click', () => {
+      document.getElementById('settings-modal').classList.remove('active');
+    });
+
+    document.getElementById('online-counter').addEventListener('click', () => {
+      document.getElementById('online-users-modal').classList.add('active');
+      renderOnlineUsers();
+    });
+
+    function renderOnlineUsers() {
+      const container = document.getElementById('online-users-list');
+      if (state.onlineUsers.size === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No users online</p>';
+        return;
+      }
+
+      container.innerHTML = Array.from(state.onlineUsers.entries())
+        .map(([name, info]) => `
+          <div class="online-user-item">
+            <div class="online-user-avatar">
+              ${name.charAt(0).toUpperCase()}
+              <div class="presence-dot ${info.presence || 'offline'}"></div>
+            </div>
+            <div class="online-user-info">
+              <div class="online-user-name">${name}</div>
+              <div class="online-user-status">${info.status || '🎮 Gaming'}</div>
+              ${info.bio ? `<div class="online-user-status" style="margin-top: 2px;">"${info.bio}"</div>` : ''}
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    document.getElementById('send-btn').addEventListener('click', () => {
+      const input = document.getElementById('message-input');
+      const text = input.value.trim();
+      if (text && state.connected) {
+        sendMessage(text);
+        input.value = '';
+        input.focus();
+      } else if (!state.connected) {
+        debug('Not connected to server', 'error');
+      }
+    });
+
+    document.getElementById('message-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('send-btn').click();
+      }
+    });
+
+    document.getElementById('file-btn').addEventListener('click', () => {
+      document.getElementById('file-input').click();
+    });
+
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        debug('File too large (max 10MB)', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target.result.split(',')[1];
+        sendFile(file, base64);
+      };
+      reader.readAsDataURL(file);
+      
+      document.getElementById('file-input').value = '';
+    });
+
+    document.getElementById('add-server-btn').addEventListener('click', () => {
+      document.getElementById('server-modal').classList.add('active');
+      document.getElementById('server-input').focus();
+    });
+
+    document.getElementById('server-cancel').addEventListener('click', () => {
+      document.getElementById('server-modal').classList.remove('active');
+    });
+
+    document.getElementById('server-confirm').addEventListener('click', () => {
+      const input = document.getElementById('server-input');
+      const name = input.value.trim().toLowerCase();
+      if (name && !state.servers.has(name)) {
+        state.servers.add(name);
+        state.messages[name] = [];
+        localStorage.setItem('servers', JSON.stringify(Array.from(state.servers)));
+        renderServers();
+        document.getElementById('server-modal').classList.remove('active');
+        input.value = '';
+        debug(`Server created: ${name}`, 'success');
+      }
+    });
+
+    document.getElementById('server-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('server-confirm').click();
+      }
+    });
+
+    // ============================================================================
+    // INITIALIZATION
+    // ============================================================================
+    initTheme();
+    renderServers();
+    renderMessages();
+    updateHeaderTitle();
+    updateStatus();
+    updateUserProfile();
+    updateOnlineCounter();
+
+    debug('Auto-connecting...', 'info');
+    setTimeout(() => {
+      connect();
+    }, 500);
+
+    window.addEventListener('beforeunload', () => {
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        state.ws.close(1000, 'Unload');
+      }
+    });
+  </script>
+</body>
+</html>
